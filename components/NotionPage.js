@@ -7,8 +7,8 @@ import { isBrowser } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Code } from 'react-notion-x/build/third-party/code'
-import { Pdf } from 'react-notion-x/build/third-party/pdf'
-import { Equation } from 'react-notion-x/build/third-party/equation'
+// import { Pdf } from 'react-notion-x/build/third-party/pdf'
+// import { Equation } from 'react-notion-x/build/third-party/equation'
 
 import 'prismjs/components/prism-bash.js'
 import 'prismjs/components/prism-markup-templating.js'
@@ -43,8 +43,19 @@ import 'prismjs/components/prism-wasm.js'
 import 'prismjs/components/prism-yaml.js'
 import 'prismjs/components/prism-r.js'
 
-// 化学方程式
-import '@/lib/mhchem'
+const Equation = dynamic(() =>
+  import('react-notion-x/build/third-party/equation').then(async (m) => {
+    // 化学方程式
+    await import('@/lib/mhchem')
+    return m.Equation
+  })
+)
+const Pdf = dynamic(
+  () => import('react-notion-x/build/third-party/pdf').then((m) => m.Pdf),
+  {
+    ssr: false
+  }
+)
 
 // https://github.com/txs
 // import PrismMac from '@/components/PrismMac'
@@ -61,10 +72,6 @@ const Modal = dynamic(
 )
 
 const NotionPage = ({ post }) => {
-  if (!post || !post.blockMap) {
-    return <>{post?.summary || ''}</>
-  }
-
   const zoom = isBrowser() && mediumZoom({
     container: '.notion-viewport',
     background: 'rgba(0, 0, 0, 0.2)',
@@ -103,8 +110,11 @@ const NotionPage = ({ post }) => {
     }, 800)
   }, [])
 
+  if (!post || !post.blockMap) {
+    return <>{post?.summary || ''}</>
+  }
+
   return <div id='container' className='max-w-5xl overflow-x-visible mx-auto'>
-    <PrismMac />
     <NotionRenderer
       recordMap={post.blockMap}
       mapPageUrl={mapPageUrl}
@@ -117,6 +127,9 @@ const NotionPage = ({ post }) => {
         nextImage: Image,
         nextLink: Link
       }} />
+
+      <PrismMac />
+
   </div>
 }
 
